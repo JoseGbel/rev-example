@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Rates &amp; conversions</string>
+    <string name="converter">Converter</string>
+    <string name="all_rates">All rates</string>
+</resources>
