@@ -10,14 +10,14 @@ import com.example.revoluttest.R
 
 class ConverterFragment : Fragment() {
     companion object {
-        fun newInstance() = ratesFragment()
+        fun newInstance() = RatesFragment()
     }
 
     private lateinit var viewModel: RatesViewModel
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View {
-        return inflater.inflate(R.layout.main_fragment, container, false)
+        return inflater.inflate(R.layout.converter_fragment, container, false)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {

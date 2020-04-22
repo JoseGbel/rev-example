@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cardElevation="0dp"
+    app:cardUseCompatPadding="true">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+        <ImageView
+            android:id="@+id/flag_image_view"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@mipmap/ic_launcher_round"/>
+
+        <TextView
+            android:id="@+id/currency_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CURRENCY"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:paddingTop="@dimen/list_item_tv_padding"
+            android:paddingStart="@dimen/list_item_tv_padding"
+            android:layout_toRightOf="@id/flag_image_view"
+            android:layout_toEndOf="@+id/flag_image_view"
+            android:textColor="@android:color/black"/>
+
+        <TextView
+            android:id="@+id/country_currency_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/flag_image_view"
+            android:layout_toEndOf="@+id/flag_image_view"
+            android:layout_below="@+id/currency_name"
+            android:paddingStart="@dimen/list_item_tv_padding"
+            android:text="Country Currency Name"
+            android:textSize="12sp"
+            android:textColor="@android:color/darker_gray"/>
+
+        <TextView
+            android:id="@+id/value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/country_currency_name"
+            android:layout_alignParentRight="true"
+            android:gravity="right"
+            android:text="100"
+            android:textSize="24sp" />
+    </RelativeLayout>
+
+</androidx.cardview.widget.CardView>
