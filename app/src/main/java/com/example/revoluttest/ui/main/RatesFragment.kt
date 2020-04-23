@@ -1,18 +1,15 @@
 package com.example.revoluttest.ui.main
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.revoluttest.R
 import com.example.revoluttest.model.Currency
 import com.example.revoluttest.model.Rates
-import com.example.revoluttest.model.RatesResponse
 import com.example.revoluttest.viewmodels.RatesViewModel
 import kotlinx.android.synthetic.main.rates_fragment.*
 
@@ -39,16 +36,13 @@ class RatesFragment : Fragment() {
 
         val ratesLiveData = viewModel.getRatesRepository()
 
-            ratesLiveData.observe(viewLifecycleOwner, Observer { response ->
-
-            addElements(response.rates)
+            addElements(ratesLiveData.rates!!)
 
             if (ratesAdapter == null){
                 setUpRecyclerView()
             } else{
                 ratesAdapter!!.notifyDataSetChanged()
             }
-        })
 
         setUpRecyclerView()
     }

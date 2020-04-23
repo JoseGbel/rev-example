@@ -10,17 +10,17 @@ import com.example.revoluttest.model.RatesResponse
  * This ViewModel holds a reference to LiveData which is returned  from the repository
  */
 class RatesViewModel : ViewModel() {
-    private lateinit var rates : MutableLiveData<RatesResponse>
+    private lateinit var rates : RatesResponse
 
     private lateinit var ratesRepository : RatesRepository
 
-    fun getRatesRepository() : LiveData<RatesResponse>{
+    fun getRatesRepository() : RatesResponse{
         return rates
     }
 
     fun init(base: String) {
         ratesRepository = RatesRepository.instance!!
 
-        rates = ratesRepository.getRates(base)
+        rates = ratesRepository.getRates(base)!!
     }
 }
