@@ -1,5 +1,6 @@
 package com.example.revoluttest.network
 
+import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -18,7 +19,7 @@ object RatesAPIFactory {
 
         val builder = Retrofit.Builder()
             .baseUrl(API_BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
 
         return builder
             .client(httpClient.build())

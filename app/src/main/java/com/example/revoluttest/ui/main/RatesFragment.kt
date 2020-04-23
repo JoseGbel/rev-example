@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.revoluttest.R
@@ -12,6 +13,7 @@ import com.example.revoluttest.model.Currency
 import com.example.revoluttest.model.Rates
 import com.example.revoluttest.viewmodels.RatesViewModel
 import kotlinx.android.synthetic.main.rates_fragment.*
+import kotlin.concurrent.timer
 
 /**
  * Simple fragment that uses a ViewModel to make a network call and observes the result
@@ -31,21 +33,27 @@ class RatesFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+
         viewModel = ViewModelProvider(this).get(RatesViewModel::class.java)
+
         viewModel.init("EUR")
 
-        val ratesLiveData = viewModel.getRatesRepository()
+            val ratesLiveData = viewModel.rates
 
-            addElements(ratesLiveData.rates!!)
+            ratesLiveData.observe(viewLifecycleOwner, Observer { response ->
+                addElements(response.rates)
 
-            if (ratesAdapter == null){
-                setUpRecyclerView()
-            } else{
-                ratesAdapter!!.notifyDataSetChanged()
-            }
+                if (ratesAdapter == null) {
+                    setUpRecyclerView()
+                } else {
+                    ratesAdapter!!.notifyDataSetChanged()
+                }
+            })
 
-        setUpRecyclerView()
+            setUpRecyclerView()
+
     }
+
 
     private fun addElements(allRates: Rates) {
         ratesList.add(Currency(
