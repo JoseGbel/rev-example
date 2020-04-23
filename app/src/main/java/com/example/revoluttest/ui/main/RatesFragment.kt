@@ -7,8 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.work.WorkerParameters
-import com.example.revoluttest.DataFetchingWorker
 import com.example.revoluttest.R
 import com.example.revoluttest.model.Currency
 import com.example.revoluttest.model.Rates
@@ -35,8 +33,6 @@ class RatesFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProvider(this).get(RatesViewModel::class.java)
         viewModel.init("EUR")
-
-//        DataFetchingWorker.periodicWork()
 
         val ratesLiveData = viewModel.getRatesRepository()
 
