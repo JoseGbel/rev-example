@@ -1,42 +1,40 @@
 package com.example.revoluttest.model
 
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.example.revoluttest.network.RatesAPI
 import com.example.revoluttest.network.RatesAPIFactory
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-
+/**
+ * Repository class
+ * This class contains a companion object to create a Singleton of a Rates Repository
+ */
 class RatesRepository {
+    val ratesData = MutableLiveData<RatesResponse>()
+
     private val ratesApi: RatesAPI = RatesAPIFactory.createService()
 
-    fun getRates(base: String): MutableLiveData<RatesResponse?> {
+    fun getRates(base: String): MutableLiveData<RatesResponse> {
 
-        val ratesData: MutableLiveData<RatesResponse?> = MutableLiveData()
-        GlobalScope.launch {
-
+        GlobalScope.launch (Dispatchers.Main) {
             val call = ratesApi.getRates(base)
-
-            Log.d("RETRORESPONSE", call.toString())
 
             call.enqueue(object : Callback<RatesResponse?> {
                 override fun onResponse(
                     call: Call<RatesResponse?>?,
                     response: Response<RatesResponse?>
                 ) {
-                    Log.d("RETRORESPONSE", "OnSuccess!!")
                     if (response.isSuccessful) {
                         ratesData.value = response.body()
                     }
                 }
 
                 override fun onFailure(call: Call<RatesResponse?>?, t: Throwable?) {
-
-                    Log.d("RETRORESPONSE", "OnFailure!!")
                     ratesData.value = null
                 }
             })

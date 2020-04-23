@@ -9,10 +9,14 @@ import com.example.revoluttest.R
 import com.example.revoluttest.model.Currency
 import kotlinx.android.synthetic.main.rates_card_layout.view.*
 
+
+/**
+ * Adapter class that inflates a layout of the CardView and binds the data to it
+ */
 class RatesRecyclerViewAdapter(val ratesList: ArrayList<Currency>, val context: Context?)
     : RecyclerView.Adapter<RatesRecyclerViewAdapter.ViewHolder>() {
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
-        fun bindIteam(currency : Currency){
+        fun bindItem(currency : Currency){
             itemView.currency_name.text = currency.currencyName
             itemView.country_currency_name.text = currency.countryCurrencyName
             itemView.value.text = currency.value.toString()
@@ -32,6 +36,6 @@ class RatesRecyclerViewAdapter(val ratesList: ArrayList<Currency>, val context: 
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bindIteam(ratesList[position])
+        holder.bindItem(ratesList[position])
     }
 }

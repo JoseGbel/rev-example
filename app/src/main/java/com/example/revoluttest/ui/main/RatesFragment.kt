@@ -1,6 +1,5 @@
 package com.example.revoluttest.ui.main
 
-import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -12,10 +11,15 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.revoluttest.R
 import com.example.revoluttest.model.Currency
-import com.example.revoluttest.model.Rate
+import com.example.revoluttest.model.Rates
+import com.example.revoluttest.model.RatesResponse
 import com.example.revoluttest.viewmodels.RatesViewModel
 import kotlinx.android.synthetic.main.rates_fragment.*
 
+/**
+ * Simple fragment that uses a ViewModel to make a network call and observes the result
+ * on a RecyclerView
+ */
 class RatesFragment : Fragment() {
     private lateinit var viewModel: RatesViewModel
 
@@ -33,25 +37,12 @@ class RatesFragment : Fragment() {
         viewModel = ViewModelProvider(this).get(RatesViewModel::class.java)
         viewModel.init("EUR")
 
-        Log.d("RETRORESPONSE", "value: " + viewModel.getRatesRepository().value)
+        val ratesLiveData = viewModel.getRatesRepository()
 
-        viewModel.getRatesRepository().observe(viewLifecycleOwner, Observer { response ->
+            ratesLiveData.observe(viewLifecycleOwner, Observer { response ->
 
-//            Log.d("RETRORESPONSE", response.rates.toString())
+            addElements(response.rates)
 
-//            val allRates: Map<String, Float> = response.rates
-            val allRates: List<Rate> = response.rates
-
-            for (rate in allRates) {
-                when (rate.currency){
-                    "EUR" -> ratesList.add(Currency("EUR", "Euro", R.drawable.aud, rate.value))
-                    "AUD" -> ratesList.add(Currency("AUD", "Australian Dollar", R.drawable.aud, rate.value))
-                    "BGN" -> ratesList.add(Currency("BGN", "Bulgarian Lev", R.drawable.aud, rate.value))
-                    "BRL" -> ratesList.add(Currency("BRL", "Brazilian Real", R.drawable.aud, rate.value))
-                    "CAD" -> ratesList.add(Currency("CAD", "Canadian Dollar", R.drawable.aud, rate.value))
-
-                }
-            }
             if (ratesAdapter == null){
                 setUpRecyclerView()
             } else{
@@ -59,10 +50,74 @@ class RatesFragment : Fragment() {
             }
         })
 
-//        ratesList.add(Currency("EUR", "European Euro", R.drawable.eur, 100))
-//        ratesList.add(Currency("USD", "American Dollar", R.drawable.usd, 200))
-//        ratesList.add(Currency("CAD", "Canadian Dollar", R.drawable.cad, 300))
         setUpRecyclerView()
+    }
+
+    private fun addElements(allRates: Rates) {
+        ratesList.add(Currency(
+            "EUR", "Euro", R.drawable.eur, 1.00))
+        ratesList.add(Currency(
+            "AUD", "Australian Dollar", R.drawable.aud, allRates.AUD))
+        ratesList.add(Currency(
+            "BGN", "Bulgarian Lev", R.drawable.bgn, allRates.BGN))
+        ratesList.add(Currency(
+            "BRL", "Brazilian Real", R.drawable.brl, allRates.BRL))
+        ratesList.add(Currency(
+            "CAD", "Canadian Dollar", R.drawable.cad, allRates.CAD))
+        ratesList.add(Currency(
+            "CHF", "Swiss franc", R.drawable.chf, allRates.CHF))
+        ratesList.add(Currency(
+            "CNY", "Chinese Yuan", R.drawable.cny, allRates.CNY))
+        ratesList.add(Currency(
+            "CZK", "Czech Koruna", R.drawable.czk, allRates.CZK))
+        ratesList.add(Currency(
+            "DKK", "Danish Krone", R.drawable.dkk, allRates.DKK))
+        ratesList.add(Currency(
+            "GBP", "British Pound", R.drawable.gbp, allRates.GBP))
+        ratesList.add(Currency(
+            "HKD", "Hong Kong Dollar", R.drawable.hkd, allRates.HKD))
+        ratesList.add(Currency(
+            "HRK", "Croatian Kuna", R.drawable.hrk, allRates.HRK))
+        ratesList.add(Currency(
+            "HUF", "Hungarian Forint", R.drawable.huf, allRates.HUF))
+        ratesList.add(Currency(
+            "IDR", "Indonesian Rupiah", R.drawable.idr, allRates.IDR))
+        ratesList.add(Currency(
+            "ILS", "Israeli Shekel", R.drawable.ils, allRates.ILS))
+        ratesList.add(Currency(
+            "INR", "Indian Rupee", R.drawable.eur, allRates.INR))
+        ratesList.add(Currency(
+            "ISK", "Icelandic Króna", R.drawable.isk, allRates.ISK))
+        ratesList.add(Currency(
+            "JPY", "Japanese Yen", R.drawable.jpy, allRates.JPY))
+        ratesList.add(Currency(
+            "KRW", "South Korean Won", R.drawable.krw, allRates.KRW))
+        ratesList.add(Currency(
+            "MXN", "Mexican Peso", R.drawable.mxn, allRates.MXN))
+        ratesList.add(Currency(
+            "MYR", "Malaysian Ringgit", R.drawable.myr, allRates.MYR))
+        ratesList.add(Currency(
+            "NOK", "Norwegian Krone", R.drawable.nok, allRates.NOK))
+        ratesList.add(Currency(
+            "NZD", "Bulgarian Lev", R.drawable.bgn, allRates.BGN))
+        ratesList.add(Currency(
+            "PHP", "Philippine Peso", R.drawable.php, allRates.PHP))
+        ratesList.add(Currency(
+            "PLN", "Polish Złoty", R.drawable.pln, allRates.PLN))
+        ratesList.add(Currency(
+            "RON", "Romanian Leu", R.drawable.ron, allRates.RON))
+        ratesList.add(Currency(
+            "RUB", "Russian Rouble", R.drawable.rub, allRates.RUB))
+        ratesList.add(Currency(
+            "SEK", "Swedish krona", R.drawable.sek, allRates.SEK))
+        ratesList.add(Currency(
+            "SGD", "Singapore Dollar", R.drawable.sgd, allRates.SGD))
+        ratesList.add(Currency(
+            "THB", "Thai Baht", R.drawable.thb, allRates.THB))
+        ratesList.add(Currency(
+            "USD", "United States Dollar", R.drawable.usd, allRates.USD))
+        ratesList.add(Currency(
+            "ZAR", "South African Rand", R.drawable.zar, allRates.ZAR))
     }
 
     private fun setUpRecyclerView(){
@@ -75,5 +130,4 @@ class RatesFragment : Fragment() {
             ratesAdapter!!.notifyDataSetChanged()
         }
     }
-
 }

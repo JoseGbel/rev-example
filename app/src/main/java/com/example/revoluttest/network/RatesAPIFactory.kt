@@ -5,6 +5,9 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+/**
+ * Factory which creates Retrofit instances for the application's REST API
+ */
 object RatesAPIFactory {
     private const val API_BASE_URL = "https://hiring.revolut.codes/api/android/"
 
