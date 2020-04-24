@@ -4,6 +4,7 @@ package com.example.revoluttest.model
  * Data class holding the values for each rate. Required by the network response
  */
 data class Rates(
+    val EUR: Double,
     val AUD: Double,
     val BGN: Double,
     val BRL: Double,

@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.revoluttest.model.RatesRepository
 import com.example.revoluttest.model.RatesResponse
 import kotlinx.coroutines.*
-import java.util.*
 import kotlin.concurrent.timer
 
 /**
@@ -15,16 +14,19 @@ import kotlin.concurrent.timer
  */
 class RatesViewModel : ViewModel() {
     private val _rates = MutableLiveData<RatesResponse>()
-
     val rates : LiveData<RatesResponse>
         get() = _rates
 
-    fun init(base: String) {
+    fun setupTimer(baseCurrency: String) {
         timer("NetworkRequest",false, 0, 1000) {
             viewModelScope.launch {
-                _rates.postValue(RatesRepository().getRates(base))
+                val latestRates = getRates(baseCurrency)
+
+                _rates.postValue(latestRates)
 
             }
         }
     }
+
+    suspend fun getRates(baseCurrency: String) = RatesRepository().getRates(baseCurrency)
 }

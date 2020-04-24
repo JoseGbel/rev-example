@@ -13,7 +13,6 @@ import com.example.revoluttest.model.Currency
 import com.example.revoluttest.model.Rates
 import com.example.revoluttest.viewmodels.RatesViewModel
 import kotlinx.android.synthetic.main.rates_fragment.*
-import kotlin.concurrent.timer
 
 /**
  * Simple fragment that uses a ViewModel to make a network call and observes the result
@@ -33,29 +32,23 @@ class RatesFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-
         viewModel = ViewModelProvider(this).get(RatesViewModel::class.java)
 
-        viewModel.init("EUR")
-
-            val ratesLiveData = viewModel.rates
+        viewModel.setupTimer("EUR")
+        val ratesLiveData = viewModel.rates
 
             ratesLiveData.observe(viewLifecycleOwner, Observer { response ->
-                addElements(response.rates)
+                refreshData(response.rates)
 
-                if (ratesAdapter == null) {
-                    setUpRecyclerView()
-                } else {
-                    ratesAdapter!!.notifyDataSetChanged()
-                }
+                if (ratesAdapter == null) setUpRecyclerView()
+                else ratesAdapter!!.notifyDataSetChanged()
             })
-
-            setUpRecyclerView()
-
     }
 
+    private fun refreshData(allRates: Rates) {
+        // clear the list to avoid new items being re-appended
+        ratesList.clear()
 
-    private fun addElements(allRates: Rates) {
         ratesList.add(Currency(
             "EUR", "Euro", R.drawable.eur, 1.00))
         ratesList.add(Currency(
