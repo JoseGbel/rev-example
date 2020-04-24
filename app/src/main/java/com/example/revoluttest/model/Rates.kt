@@ -5,9 +5,9 @@ package com.example.revoluttest.model
  */
 data class Rates(
     val EUR: Double,
-    val AUD: Double,
     val BGN: Double,
     val BRL: Double,
+    val AUD: Double,
     val CAD: Double,
     val CHF: Double,
     val CNY: Double,
