@@ -4,9 +4,11 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Adapter
 import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerViewAccessibilityDelegate
 import com.example.revoluttest.R
 import com.example.revoluttest.model.Currency
 import com.example.revoluttest.model.Rates
@@ -47,6 +49,8 @@ class RatesRecyclerViewAdapter(val ratesList: ArrayList<Currency>,
             onRateListener.onRateClick(adapterPosition, itemView.currency_name.text.toString())
         }
     }
+
+
 
     interface OnRateListener {
         fun onRateClick(position : Int, currency : String)

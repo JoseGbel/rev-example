@@ -160,7 +160,10 @@ class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
         // stop previous timer
         viewModel.stopCurrentTimer()
 
-        // restart the new timer
+        ratesAdapter?.notifyItemMoved(position, 0)
+        recyclerView.scrollToPosition(0)
+
+        // restart the new timerS
         viewModel.setupTimer(currency)
     }
 }
