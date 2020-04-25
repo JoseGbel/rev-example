@@ -1,3 +1,3 @@
 package com.example.revoluttest.model
 
-class RatesModel (val baseCurrrency : String, val rates : Map<String, Any>)
+class RatesModel (val baseCurrency : String, val rates : Map<String, Any>)

@@ -21,6 +21,8 @@ import kotlin.collections.ArrayList
  * on a RecyclerView
  */
 class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
+    private val POSITIONSDATA = "ratesItemsPositions"
+
     private lateinit var viewModel: RatesViewModel
 
     private var ratesAdapter : RatesRecyclerViewAdapter? = null
@@ -46,9 +48,17 @@ class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
 
         viewModel = ViewModelProvider(this).get(RatesViewModel::class.java)
 
-        initialisePositions()
 
-        viewModel.setupTimer("BGN")
+        if (savedInstanceState != null) {
+            val positions = savedInstanceState.getStringArrayList(POSITIONSDATA)
+            for (x in 0 until positions!!.size){
+                ratesPositions.add(positions[x])
+            }
+        } else {
+            initialisePositions()
+        }
+
+        viewModel.setupTimer("EUR")
         val ratesLiveData = viewModel.rates
 
             ratesLiveData.observe(viewLifecycleOwner, Observer { data ->
@@ -56,7 +66,7 @@ class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
 
                 sortListByPositionsMap()
 
-                moveBaseCurrencyToTopOf(ratesArray, data.baseCurrrency)
+//                moveBaseCurrencyToTopOf(ratesArray, data.baseCurrency)
 
                 if (ratesAdapter == null) setUpRecyclerView()
                 else {
@@ -72,19 +82,27 @@ class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
         val tempArray = ArrayList<Currency>()
 
         // Place sorted items in a temporary
-        for (x in 0 until ratesArray.size-1){
+        for (x in 0 until ratesArray.size){
+
             var found = false
-            for (y in 0 until ratesArray.size-1){
-                if (found) break
+            for (y in 0 until ratesArray.size){
+                if (found) {
+                    break
+                }
                 if (ratesPositions[x] == ratesArray[y].currencyName){
                     tempArray.add(ratesArray[y])
                     found = true
+                    if(x == 31){
+                        assert(true)
+
+                    }
+
                 }
             }
         }
 
         // Copy the temporary list back to the ratesArray
-        for (x in 0 until tempArray.size-1){
+        for (x in 0 until tempArray.size){
             ratesArray[x] = tempArray[x]
         }
     }
@@ -124,8 +142,14 @@ class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
         ratesPositions.add("ZAR")
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        outState.putStringArrayList(POSITIONSDATA, ratesPositions)
+    }
+
     private fun recordPositions(){
-        for (x in 0 until ratesArray.size-1){
+        for (x in 0 until ratesArray.size){
             ratesPositions[x] = ratesArray[x].currencyName
         }
     }
@@ -134,77 +158,77 @@ class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
         // clear the list to avoid new items being re-appended
         ratesArray.clear()
 
-        ratesArray.add(Currency(
-            "EUR", "Euro", R.drawable.eur, allRates["eur"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "AUD", "Australian Dollar", R.drawable.aud, allRates["aud"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "BGN", "Bulgarian Lev", R.drawable.bgn, allRates["bgn"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "BRL", "Brazilian Real", R.drawable.brl, allRates["brl"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "CAD", "Canadian Dollar", R.drawable.cad, allRates["cad"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "CHF", "Swiss franc", R.drawable.chf, allRates["chf"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "CNY", "Chinese Yuan", R.drawable.cny, allRates["cny"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "CZK", "Czech Koruna", R.drawable.czk, allRates["czk"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "DKK", "Danish Krone", R.drawable.dkk, allRates["dkk"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "GBP", "British Pound", R.drawable.gbp, allRates["gbp"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "HKD", "Hong Kong Dollar", R.drawable.hkd, allRates["hkd"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "HRK", "Croatian Kuna", R.drawable.hrk, allRates["hrk"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "HUF", "Hungarian Forint", R.drawable.huf, allRates["huf"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "IDR", "Indonesian Rupiah", R.drawable.idr, allRates["idr"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "ILS", "Israeli Shekel", R.drawable.ils, allRates["ils"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "INR", "Indian Rupee", R.drawable.inr, allRates["inr"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "ISK", "Icelandic Króna", R.drawable.isk, allRates["isk"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "JPY", "Japanese Yen", R.drawable.jpy, allRates["jpy"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "KRW", "South Korean Won", R.drawable.krw, allRates["krw"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "MXN", "Mexican Peso", R.drawable.mxn, allRates["mxn"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "MYR", "Malaysian Ringgit", R.drawable.myr, allRates["myr"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "NOK", "Norwegian Krone", R.drawable.nok, allRates["nok"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "NZD", "Bulgarian Lev", R.drawable.bgn, allRates["bgn"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "PHP", "Philippine Peso", R.drawable.php, allRates["php"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "PLN", "Polish Złoty", R.drawable.pln, allRates["pln"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "RON", "Romanian Leu", R.drawable.ron, allRates["ron"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "RUB", "Russian Rouble", R.drawable.rub, allRates["rub"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "SEK", "Swedish krona", R.drawable.sek, allRates["sek"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "SGD", "Singapore Dollar", R.drawable.sgd, allRates["sgd"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "THB", "Thai Baht", R.drawable.thb, allRates["thb"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "USD", "United States Dollar", R.drawable.usd, allRates["usd"].toString().toDouble()))
-        ratesArray.add(Currency(
-            "ZAR", "South African Rand", R.drawable.zar, allRates["zar"].toString().toDouble()))
+        ratesArray.add(Currency("EUR", "Euro",
+            R.drawable.eur, allRates["eur"].toString().toDouble()))
+        ratesArray.add(Currency("AUD", "Australian Dollar",
+            R.drawable.aud, allRates["aud"].toString().toDouble()))
+        ratesArray.add(Currency("BGN", "Bulgarian Lev",
+            R.drawable.bgn, allRates["bgn"].toString().toDouble()))
+        ratesArray.add(Currency("BRL", "Brazilian Real",
+            R.drawable.brl, allRates["brl"].toString().toDouble()))
+        ratesArray.add(Currency("CAD", "Canadian Dollar",
+            R.drawable.cad, allRates["cad"].toString().toDouble()))
+        ratesArray.add(Currency("CHF", "Swiss franc",
+            R.drawable.chf, allRates["chf"].toString().toDouble()))
+        ratesArray.add(Currency("CNY", "Chinese Yuan",
+            R.drawable.cny, allRates["cny"].toString().toDouble()))
+        ratesArray.add(Currency("CZK", "Czech Koruna",
+            R.drawable.czk, allRates["czk"].toString().toDouble()))
+        ratesArray.add(Currency("DKK", "Danish Krone",
+            R.drawable.dkk, allRates["dkk"].toString().toDouble()))
+        ratesArray.add(Currency("GBP", "British Pound",
+            R.drawable.gbp, allRates["gbp"].toString().toDouble()))
+        ratesArray.add(Currency("HKD", "Hong Kong Dollar",
+            R.drawable.hkd, allRates["hkd"].toString().toDouble()))
+        ratesArray.add(Currency("HRK", "Croatian Kuna",
+            R.drawable.hrk, allRates["hrk"].toString().toDouble()))
+        ratesArray.add(Currency("HUF", "Hungarian Forint",
+            R.drawable.huf, allRates["huf"].toString().toDouble()))
+        ratesArray.add(Currency("IDR", "Indonesian Rupiah",
+            R.drawable.idr, allRates["idr"].toString().toDouble()))
+        ratesArray.add(Currency("ILS", "Israeli Shekel",
+            R.drawable.ils, allRates["ils"].toString().toDouble()))
+        ratesArray.add(Currency("INR", "Indian Rupee",
+            R.drawable.inr, allRates["inr"].toString().toDouble()))
+        ratesArray.add(Currency("ISK", "Icelandic Króna",
+            R.drawable.isk, allRates["isk"].toString().toDouble()))
+        ratesArray.add(Currency("JPY", "Japanese Yen",
+            R.drawable.jpy, allRates["jpy"].toString().toDouble()))
+        ratesArray.add(Currency("KRW", "South Korean Won",
+            R.drawable.krw, allRates["krw"].toString().toDouble()))
+        ratesArray.add(Currency("MXN", "Mexican Peso",
+            R.drawable.mxn, allRates["mxn"].toString().toDouble()))
+        ratesArray.add(Currency("MYR", "Malaysian Ringgit",
+            R.drawable.myr, allRates["myr"].toString().toDouble()))
+        ratesArray.add(Currency("NOK", "Norwegian Krone",
+            R.drawable.nok, allRates["nok"].toString().toDouble()))
+        ratesArray.add(Currency("NZD", "Bulgarian Lev",
+            R.drawable.bgn, allRates["bgn"].toString().toDouble()))
+        ratesArray.add(Currency("PHP", "Philippine Peso",
+            R.drawable.php, allRates["php"].toString().toDouble()))
+        ratesArray.add(Currency("PLN", "Polish Złoty",
+            R.drawable.pln, allRates["pln"].toString().toDouble()))
+        ratesArray.add(Currency("RON", "Romanian Leu",
+            R.drawable.ron, allRates["ron"].toString().toDouble()))
+        ratesArray.add(Currency("RUB", "Russian Rouble",
+            R.drawable.rub, allRates["rub"].toString().toDouble()))
+        ratesArray.add(Currency("SEK", "Swedish krona",
+            R.drawable.sek, allRates["sek"].toString().toDouble()))
+        ratesArray.add(Currency("SGD", "Singapore Dollar",
+            R.drawable.sgd, allRates["sgd"].toString().toDouble()))
+        ratesArray.add(Currency("THB", "Thai Baht",
+            R.drawable.thb, allRates["thb"].toString().toDouble()))
+        ratesArray.add(Currency("USD", "United States Dollar",
+            R.drawable.usd, allRates["usd"].toString().toDouble()))
+        ratesArray.add(Currency("ZAR", "South African Rand",
+            R.drawable.zar, allRates["zar"].toString().toDouble()))
     }
 
     /**
      * Takes the current baseCurrency and push it to the beggining of the list
      */
     private fun moveBaseCurrencyToTopOf(array: ArrayList<Currency>, baseCurrency: String){
-        for (x in 0 until array.size-1) {
+        for (x in 0 until array.size) {
             if (array[x].currencyName == baseCurrency && x == 0) {
                 return
             } else if (array[x].currencyName == baseCurrency) {
@@ -216,8 +240,11 @@ class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
                 return
             }
         }
+    }
 
-//        recordPositions()
+    override fun onStop() {
+        super.onStop()
+        viewModel.stopCurrentTimer()
     }
 
     private fun setUpRecyclerView(){
@@ -236,6 +263,8 @@ class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
         viewModel.stopCurrentTimer()
 
         ratesAdapter?.notifyItemMoved(position, 0)
+
+        moveBaseCurrencyToTopOf(ratesArray, currency)
 
         recordPositions()
 
