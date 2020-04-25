@@ -26,6 +26,7 @@ class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
     private var ratesAdapter : RatesRecyclerViewAdapter? = null
 
     private val ratesArray = ArrayList<Currency>()
+    private val ratesPositions = ArrayList<String>()
 
     private lateinit var recyclerView : RecyclerView
 
@@ -45,11 +46,15 @@ class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
 
         viewModel = ViewModelProvider(this).get(RatesViewModel::class.java)
 
+        initialisePositions()
+
         viewModel.setupTimer("BGN")
         val ratesLiveData = viewModel.rates
 
             ratesLiveData.observe(viewLifecycleOwner, Observer { data ->
                 refreshData(data.rates)
+
+                sortListByPositionsMap()
 
                 moveBaseCurrencyToTopOf(ratesArray, data.baseCurrrency)
 
@@ -58,6 +63,71 @@ class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
                     ratesAdapter!!.notifyDataSetChanged()
                 }
             })
+    }
+
+    /**
+     * Method that uses the last positions recorded and sort the recreated list according to it
+     */
+    private fun sortListByPositionsMap() {
+        val tempArray = ArrayList<Currency>()
+
+        // Place sorted items in a temporary
+        for (x in 0 until ratesArray.size-1){
+            var found = false
+            for (y in 0 until ratesArray.size-1){
+                if (found) break
+                if (ratesPositions[x] == ratesArray[y].currencyName){
+                    tempArray.add(ratesArray[y])
+                    found = true
+                }
+            }
+        }
+
+        // Copy the temporary list back to the ratesArray
+        for (x in 0 until tempArray.size-1){
+            ratesArray[x] = tempArray[x]
+        }
+    }
+
+    private fun initialisePositions() {
+        ratesPositions.add("EUR")
+        ratesPositions.add("AUD")
+        ratesPositions.add("BGN")
+        ratesPositions.add("BRL")
+        ratesPositions.add("CAD")
+        ratesPositions.add("CHF")
+        ratesPositions.add("CNY")
+        ratesPositions.add("CZK")
+        ratesPositions.add("DKK")
+        ratesPositions.add("GBP")
+        ratesPositions.add("HKD")
+        ratesPositions.add("HRK")
+        ratesPositions.add("HUF")
+        ratesPositions.add("IDR")
+        ratesPositions.add("ILS")
+        ratesPositions.add("INR")
+        ratesPositions.add("ISK")
+        ratesPositions.add("JPY")
+        ratesPositions.add("KRW")
+        ratesPositions.add("MXN")
+        ratesPositions.add("MYR")
+        ratesPositions.add("NOK")
+        ratesPositions.add("NZD")
+        ratesPositions.add("PHP")
+        ratesPositions.add("PLN")
+        ratesPositions.add("RON")
+        ratesPositions.add("RUB")
+        ratesPositions.add("SEK")
+        ratesPositions.add("SGD")
+        ratesPositions.add("THB")
+        ratesPositions.add("USD")
+        ratesPositions.add("ZAR")
+    }
+
+    private fun recordPositions(){
+        for (x in 0 until ratesArray.size-1){
+            ratesPositions[x] = ratesArray[x].currencyName
+        }
     }
 
     private fun refreshData(allRates: Map<String, Any>) {
@@ -130,6 +200,9 @@ class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
             "ZAR", "South African Rand", R.drawable.zar, allRates["zar"].toString().toDouble()))
     }
 
+    /**
+     * Takes the current baseCurrency and push it to the beggining of the list
+     */
     private fun moveBaseCurrencyToTopOf(array: ArrayList<Currency>, baseCurrency: String){
         for (x in 0 until array.size-1) {
             if (array[x].currencyName == baseCurrency && x == 0) {
@@ -143,6 +216,8 @@ class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
                 return
             }
         }
+
+//        recordPositions()
     }
 
     private fun setUpRecyclerView(){
@@ -161,6 +236,9 @@ class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
         viewModel.stopCurrentTimer()
 
         ratesAdapter?.notifyItemMoved(position, 0)
+
+        recordPositions()
+
         recyclerView.scrollToPosition(0)
 
         // restart the new timerS

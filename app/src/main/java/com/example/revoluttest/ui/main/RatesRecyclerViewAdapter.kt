@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerViewAccessibilityDelegate
 import com.example.revoluttest.R
 import com.example.revoluttest.model.Currency
 import com.example.revoluttest.model.Rates
+import com.example.revoluttest.model.RatesModel
 import kotlinx.android.synthetic.main.rates_card_layout.view.*
 
 
@@ -65,6 +66,12 @@ class RatesRecyclerViewAdapter(val ratesList: ArrayList<Currency>,
 
     override fun getItemCount(): Int {
         return ratesList.size
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: MutableList<Any>) {
+        super.onBindViewHolder(holder, position, payloads)
+
+
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {

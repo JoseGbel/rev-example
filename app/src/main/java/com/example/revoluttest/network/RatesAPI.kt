@@ -9,6 +9,6 @@ import retrofit2.http.Query
  * Service interface which contains REST Calls to use with Retrofit
  */
 interface RatesAPI {
-    @GET("latest")
+    @GET("/api/android/latest")
     suspend fun getRates(@Query("base") base: String) : RatesResponse
 }
