@@ -11,13 +11,13 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
         <ImageView
-            android:id="@+id/flag_iv_rates_cv"
+            android:id="@+id/flag_iv_conv_cv"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:src="@mipmap/ic_launcher_round"/>
 
         <TextView
-            android:id="@+id/currency_name_rates_cv"
+            android:id="@+id/currency_name_conv_cv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="CURRENCY"
@@ -25,31 +25,30 @@
             android:textSize="16sp"
             android:paddingTop="@dimen/list_item_tv_padding"
             android:paddingStart="@dimen/list_item_tv_padding"
-            android:layout_toRightOf="@id/flag_iv_rates_cv"
-            android:layout_toEndOf="@+id/flag_iv_rates_cv"
+            android:layout_toRightOf="@id/flag_iv_conv_cv"
+            android:layout_toEndOf="@+id/flag_iv_conv_cv"
             android:textColor="@android:color/black"/>
 
         <TextView
-            android:id="@+id/country_currency_name_rates_cv"
+            android:id="@+id/country_currency_name_conv_cv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/flag_iv_rates_cv"
-            android:layout_toEndOf="@+id/flag_iv_rates_cv"
-            android:layout_below="@+id/currency_name_rates_cv"
+            android:layout_toRightOf="@id/flag_iv_conv_cv"
+            android:layout_toEndOf="@+id/flag_iv_conv_cv"
+            android:layout_below="@+id/currency_name_conv_cv"
             android:paddingStart="@dimen/list_item_tv_padding"
             android:text="Country Currency Name"
             android:textSize="12sp"
             android:textColor="@android:color/darker_gray"/>
 
-        <TextView
-            android:id="@+id/value_rates_cv"
+        <EditText
+            android:id="@+id/value_conv_cv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignEnd="@id/country_currency_name_rates_cv"
             android:layout_alignParentRight="true"
+            android:layout_alignEnd="@id/country_currency_name_conv_cv"
             android:gravity="right"
-            android:hint="100"
+            android:focusable="true"
             android:textSize="24sp" />
     </RelativeLayout>
-
 </androidx.cardview.widget.CardView>

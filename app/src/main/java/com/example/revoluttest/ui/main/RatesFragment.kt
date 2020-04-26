@@ -15,22 +15,15 @@ import com.example.revoluttest.viewmodels.RatesViewModel
 import kotlinx.android.synthetic.main.rates_fragment.*
 import kotlin.collections.ArrayList
 
-
 /**
  * Simple fragment that uses a ViewModel to make a network call and observes the result
  * on a RecyclerView
  */
 class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
-    private val POSITIONSDATA = "ratesItemsPositions"
-
     private lateinit var viewModel: RatesViewModel
-
-    private var ratesAdapter : RatesRecyclerViewAdapter? = null
-
-    private val ratesArray = ArrayList<Currency>()
-    private val ratesPositions = ArrayList<String>()
-
     private lateinit var recyclerView : RecyclerView
+    private val ratesArray = ArrayList<Currency>()
+    private var ratesAdapter : RatesRecyclerViewAdapter? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View {
@@ -45,113 +38,21 @@ class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-
         viewModel = ViewModelProvider(this).get(RatesViewModel::class.java)
 
+        viewModel.initialisePositions()
+        viewModel.setupTimer(viewModel.ratesPositions[0])
 
-        if (savedInstanceState != null) {
-            val positions = savedInstanceState.getStringArrayList(POSITIONSDATA)
-            for (x in 0 until positions!!.size){
-                ratesPositions.add(positions[x])
-            }
-        } else {
-            initialisePositions()
-        }
-
-        viewModel.setupTimer("EUR")
         val ratesLiveData = viewModel.rates
+        ratesLiveData.observe(viewLifecycleOwner, Observer { data ->
+            refreshData(data.rates)
+            viewModel.sortListByPositionsArray(ratesArray)
 
-            ratesLiveData.observe(viewLifecycleOwner, Observer { data ->
-                refreshData(data.rates)
-
-                sortListByPositionsMap()
-
-//                moveBaseCurrencyToTopOf(ratesArray, data.baseCurrency)
-
-                if (ratesAdapter == null) setUpRecyclerView()
-                else {
-                    ratesAdapter!!.notifyDataSetChanged()
-                }
-            })
-    }
-
-    /**
-     * Method that uses the last positions recorded and sort the recreated list according to it
-     */
-    private fun sortListByPositionsMap() {
-        val tempArray = ArrayList<Currency>()
-
-        // Place sorted items in a temporary
-        for (x in 0 until ratesArray.size){
-
-            var found = false
-            for (y in 0 until ratesArray.size){
-                if (found) {
-                    break
-                }
-                if (ratesPositions[x] == ratesArray[y].currencyName){
-                    tempArray.add(ratesArray[y])
-                    found = true
-                    if(x == 31){
-                        assert(true)
-
-                    }
-
-                }
+            if (ratesAdapter == null) setUpRecyclerView()
+            else {
+                ratesAdapter!!.notifyDataSetChanged()
             }
-        }
-
-        // Copy the temporary list back to the ratesArray
-        for (x in 0 until tempArray.size){
-            ratesArray[x] = tempArray[x]
-        }
-    }
-
-    private fun initialisePositions() {
-        ratesPositions.add("EUR")
-        ratesPositions.add("AUD")
-        ratesPositions.add("BGN")
-        ratesPositions.add("BRL")
-        ratesPositions.add("CAD")
-        ratesPositions.add("CHF")
-        ratesPositions.add("CNY")
-        ratesPositions.add("CZK")
-        ratesPositions.add("DKK")
-        ratesPositions.add("GBP")
-        ratesPositions.add("HKD")
-        ratesPositions.add("HRK")
-        ratesPositions.add("HUF")
-        ratesPositions.add("IDR")
-        ratesPositions.add("ILS")
-        ratesPositions.add("INR")
-        ratesPositions.add("ISK")
-        ratesPositions.add("JPY")
-        ratesPositions.add("KRW")
-        ratesPositions.add("MXN")
-        ratesPositions.add("MYR")
-        ratesPositions.add("NOK")
-        ratesPositions.add("NZD")
-        ratesPositions.add("PHP")
-        ratesPositions.add("PLN")
-        ratesPositions.add("RON")
-        ratesPositions.add("RUB")
-        ratesPositions.add("SEK")
-        ratesPositions.add("SGD")
-        ratesPositions.add("THB")
-        ratesPositions.add("USD")
-        ratesPositions.add("ZAR")
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-
-        outState.putStringArrayList(POSITIONSDATA, ratesPositions)
-    }
-
-    private fun recordPositions(){
-        for (x in 0 until ratesArray.size){
-            ratesPositions[x] = ratesArray[x].currencyName
-        }
+        })
     }
 
     private fun refreshData(allRates: Map<String, Any>) {
@@ -224,33 +125,9 @@ class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
             R.drawable.zar, allRates["zar"].toString().toDouble()))
     }
 
-    /**
-     * Takes the current baseCurrency and push it to the beggining of the list
-     */
-    private fun moveBaseCurrencyToTopOf(array: ArrayList<Currency>, baseCurrency: String){
-        for (x in 0 until array.size) {
-            if (array[x].currencyName == baseCurrency && x == 0) {
-                return
-            } else if (array[x].currencyName == baseCurrency) {
-                val copy = array[x]
-                for (j in (x-1) downTo 0) {
-                    array[j + 1] = array[j]
-                }
-                array[0] = copy
-                return
-            }
-        }
-    }
-
-    override fun onStop() {
-        super.onStop()
-        viewModel.stopCurrentTimer()
-    }
-
     private fun setUpRecyclerView(){
         if (ratesAdapter == null){
             ratesAdapter = RatesRecyclerViewAdapter(ratesArray, context, this)
-
             rates_recycler_view.layoutManager = LinearLayoutManager(context)
             rates_recycler_view.adapter = ratesAdapter
         } else {
@@ -262,15 +139,22 @@ class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
         // stop previous timer
         viewModel.stopCurrentTimer()
 
+        // place the touched rate at the top of the list and keep the elements positions
+        viewModel.moveBaseCurrencyToTopOf(ratesArray, currency)
+        viewModel.recordPositions(ratesArray)
+
+        // move the touched element to the top of the RecyclerView
         ratesAdapter?.notifyItemMoved(position, 0)
-
-        moveBaseCurrencyToTopOf(ratesArray, currency)
-
-        recordPositions()
-
         recyclerView.scrollToPosition(0)
 
         // restart the new timerS
         viewModel.setupTimer(currency)
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        // Stop calling the network
+        viewModel.stopCurrentTimer()
     }
 }

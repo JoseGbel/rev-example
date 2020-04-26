@@ -19,7 +19,7 @@ import kotlin.concurrent.schedule
 /**
  * This ViewModel holds a reference to LiveData which is returned  from the repository
  */
-class RatesViewModel : ViewModel() {
+class ConverterViewModel : ViewModel() {
     private val _rates = MutableLiveData<RatesModel>()
     val rates : LiveData<RatesModel>
         get() = _rates
