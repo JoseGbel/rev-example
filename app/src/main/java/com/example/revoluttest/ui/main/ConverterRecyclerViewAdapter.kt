@@ -2,11 +2,13 @@ package com.example.revoluttest.ui.main
 
 import android.content.Context
 import android.text.SpannableStringBuilder
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
-import androidx.recyclerview.widget.LinearSmoothScroller
+import androidx.core.widget.addTextChangedListener
+import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.RecyclerView
 import com.example.revoluttest.R
 import com.example.revoluttest.model.Currency
@@ -21,37 +23,51 @@ class ConverterRecyclerViewAdapter(val ratesList: ArrayList<Currency>,
                                    val onRateListener: OnRateListener)
     : RecyclerView.Adapter<ConverterRecyclerViewAdapter.ViewHolder>() {
 
-    var clickedItem = -1
+    private val doubleLiveData = MutableLiveData<Double>()
 
-    class ViewHolder(itemView: View, val onRateListener: OnRateListener) : RecyclerView.ViewHolder(itemView), View.OnClickListener{
+    class ViewHolder(itemView: View, val onRateListener: OnRateListener, private val doubleLiveData: MutableLiveData<Double>) : RecyclerView.ViewHolder(itemView), View.OnClickListener{
 
         var editText: EditText
 
         init{
             itemView.setOnClickListener(this)
             editText = itemView.findViewById(R.id.value_conv_cv)
+
+            doubleLiveData.observeForever {
+//                if (!itemView.hasFocus()){
+//                    editText.text = SpannableStringBuilder(it.toString())
+//                }
+            }
         }
 
-        fun getEtCodeBoxText(): String? {
-            return editText.text.toString()
-        }
+        fun bindHeader(currency: Currency) {
 
+            Log.d("FOCUSS", itemView.value_conv_cv.hasFocus().toString())
+            if (!editText.hasFocus()) {
+                itemView.value_conv_cv.text = SpannableStringBuilder("2.0")
+                itemView.currency_name_conv_cv.text = currency.currencyName
+                itemView.country_currency_name_conv_cv.text = currency.countryCurrencyName
+                itemView.flag_iv_conv_cv.setImageResource(currency.flag)
+                itemView.tag = currency.currencyName
+            }
+        }
 
         fun bindItem(currency : Currency){
+            itemView.value_conv_cv.addTextChangedListener {
+                doubleLiveData.value = it.toString().toDouble()
+            }
+
+//            if(adapterPosition != 0)
+//                itemView.value_conv_cv.text = SpannableStringBuilder(currency.value.toString())
+//            else
+//                itemView.value_conv_cv.text= SpannableStringBuilder("1.0")
+
+            itemView.value_conv_cv.text = SpannableStringBuilder(currency.value.toString())
+
             itemView.currency_name_conv_cv.text = currency.currencyName
             itemView.country_currency_name_conv_cv.text = currency.countryCurrencyName
-            itemView.value_conv_cv.text = SpannableStringBuilder(currency.value.toString())
             itemView.flag_iv_conv_cv.setImageResource(currency.flag)
             itemView.tag = currency.currencyName
-        }
-
-        fun RecyclerView.smoothSnapToPosition(position: Int, snapMode: Int = LinearSmoothScroller.SNAP_TO_START) {
-            val smoothScroller = object : LinearSmoothScroller(this.context) {
-                override fun getVerticalSnapPreference(): Int = snapMode
-                override fun getHorizontalSnapPreference(): Int = snapMode
-            }
-            smoothScroller.targetPosition = position
-            layoutManager?.startSmoothScroll(smoothScroller)
         }
 
         override fun onClick(v: View?) {
@@ -59,29 +75,28 @@ class ConverterRecyclerViewAdapter(val ratesList: ArrayList<Currency>,
         }
     }
 
-    interface OnRateListener {
-        fun onRateClick(position : Int, currency : String)
-    }
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.converter_card_layout, parent, false)
 
-        return ViewHolder(view, onRateListener)
+        return ViewHolder(view, onRateListener, doubleLiveData)
     }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        if (holder.adapterPosition == 0){
+            holder.bindHeader(ratesList[position])
+        }
+        else
+            holder.bindItem(ratesList[position])
+    }
+
+
 
     override fun getItemCount(): Int {
         return ratesList.size
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: MutableList<Any>) {
-        super.onBindViewHolder(holder, position, payloads)
-
-
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val current = ratesList[position]
-        holder.bindItem(current)
+    interface OnRateListener {
+        fun onRateClick(position : Int, currency : String)
     }
 }

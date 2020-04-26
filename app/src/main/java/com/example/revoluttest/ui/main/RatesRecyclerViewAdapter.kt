@@ -20,15 +20,18 @@ class RatesRecyclerViewAdapter(val ratesList: ArrayList<Currency>,
     : RecyclerView.Adapter<RatesRecyclerViewAdapter.ViewHolder>() {
 
     class ViewHolder(itemView: View, val onRateListener: OnRateListener) : RecyclerView.ViewHolder(itemView), View.OnClickListener{
+
         init{
             itemView.setOnClickListener(this)
         }
 
-        fun bindItem(currency : Currency){
+        fun bindItem(currency : Currency) {
             itemView.currency_name_rates_cv.text = currency.currencyName
             itemView.country_currency_name_rates_cv.text = currency.countryCurrencyName
             itemView.value_rates_cv.text = currency.value.toString()
+
             itemView.flag_iv_rates_cv.setImageResource(currency.flag)
+
         }
 
 
