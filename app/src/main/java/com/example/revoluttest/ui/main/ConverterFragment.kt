@@ -15,9 +15,9 @@ import com.example.revoluttest.model.Currency
 import com.example.revoluttest.network.connectivity.NetworkStatus
 import com.example.revoluttest.network.connectivity.NetworkStatusLiveData
 import com.example.revoluttest.viewmodels.ConverterViewModel
+import kotlinx.android.synthetic.main.converter_card_layout.view.*
 import kotlinx.android.synthetic.main.converter_fragment.*
 import kotlin.collections.ArrayList
-import kotlin.concurrent.timer
 
 /**
  * Simple fragment that uses a ViewModel to make a network call and observes the result
@@ -62,12 +62,12 @@ class ConverterFragment : Fragment(),
         NetworkStatusLiveData.observe(viewLifecycleOwner, Observer { status ->
             if(status == NetworkStatus.UNAVAILABLE)
             {
-                Toast.makeText(context, getString(R.string.unavailable_internet), Toast.LENGTH_LONG)
+                Toast.makeText(context, getString(R.string.unavailable_internet), Toast.LENGTH_SHORT)
                         .show()
             }
             if(status == NetworkStatus.LOST)
             {
-                Toast.makeText(context, getString(R.string.lost_internet), Toast.LENGTH_LONG)
+                Toast.makeText(context, getString(R.string.lost_internet), Toast.LENGTH_SHORT)
                     .show()
             }
             if(status == NetworkStatus.AVAILABLE)
@@ -178,6 +178,11 @@ class ConverterFragment : Fragment(),
         // move the touched element to the top of the RecyclerView
         converterAdapter?.notifyItemMoved(position, 0)
         recyclerView.scrollToPosition(0)
+
+        // allow the view to be focusable
+        val holder = recyclerView.findViewHolderForLayoutPosition(0)
+        holder!!.itemView.value_conv_cv.isFocusable = true
+        holder.itemView.value_conv_cv.isClickable = false
 
         // restart the new timerS
         viewModel.setupTimer(currency, context!!)

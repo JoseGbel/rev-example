@@ -4,5 +4,5 @@
     <string name="all_rates">All rates</string>
     <string name="rates">Rates</string>
     <string name="lost_internet">It seems you have gone offline. Check your internet connection.</string>
-    <string name="unavailable_internet">Something went wrong, check your internet connection.</string>
+    <string name="unavailable_internet">Something went wrong. Check your internet connection.</string>
 </resources>

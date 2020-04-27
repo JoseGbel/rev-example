@@ -18,8 +18,8 @@ object NetworkStatusLiveData : LiveData<NetworkStatus>() {
     fun init(application: Application) {
         this.application = application
         networkRequest = NetworkRequest.Builder()
-            .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
             .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+            .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
             .build()
     }
 
@@ -33,7 +33,7 @@ object NetworkStatusLiveData : LiveData<NetworkStatus>() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val callback = object : ConnectivityManager.NetworkCallback() {
-                override fun onAvailable(network: Network) {
+                override fun onAvailable(network: Network?) {
                     super.onAvailable(network)
                     postValue(NetworkStatus.AVAILABLE)
                 }
@@ -43,7 +43,7 @@ object NetworkStatusLiveData : LiveData<NetworkStatus>() {
                     postValue(NetworkStatus.UNAVAILABLE)
                 }
 
-                override fun onLost(network: Network) {
+                override fun onLost(network: Network?) {
                     super.onLost(network)
                     postValue(NetworkStatus.LOST)
                 }
@@ -52,7 +52,7 @@ object NetworkStatusLiveData : LiveData<NetworkStatus>() {
             cm.requestNetwork(networkRequest, callback, 3000)
         } else {
             cm.registerNetworkCallback(networkRequest, object : ConnectivityManager.NetworkCallback() {
-                override fun onAvailable(network: Network) {
+                override fun onAvailable(network: Network?) {
                     super.onAvailable(network)
                     postValue(NetworkStatus.AVAILABLE)
                 }
@@ -62,7 +62,7 @@ object NetworkStatusLiveData : LiveData<NetworkStatus>() {
                     postValue(NetworkStatus.UNAVAILABLE)
                 }
 
-                override fun onLost(network: Network) {
+                override fun onLost(network: Network?) {
                     super.onLost(network)
                     postValue(NetworkStatus.LOST)
                 }

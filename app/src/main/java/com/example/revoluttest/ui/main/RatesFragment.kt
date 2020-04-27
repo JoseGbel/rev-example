@@ -60,12 +60,12 @@ class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
         NetworkStatusLiveData.observe(viewLifecycleOwner, Observer { status ->
             if(status == NetworkStatus.UNAVAILABLE)
             {
-                Toast.makeText(context, getString(R.string.unavailable_internet), Toast.LENGTH_LONG)
+                Toast.makeText(context, getString(R.string.unavailable_internet), Toast.LENGTH_SHORT)
                     .show()
             }
             if(status == NetworkStatus.LOST)
             {
-                Toast.makeText(context, getString(R.string.lost_internet), Toast.LENGTH_LONG)
+                Toast.makeText(context, getString(R.string.lost_internet), Toast.LENGTH_SHORT)
                     .show()
             }
             if(status == NetworkStatus.AVAILABLE)
