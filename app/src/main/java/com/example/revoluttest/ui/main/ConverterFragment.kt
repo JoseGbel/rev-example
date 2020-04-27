@@ -4,24 +4,27 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import com.example.revoluttest.R
 import com.example.revoluttest.model.Currency
+import com.example.revoluttest.network.connectivity.NetworkStatus
+import com.example.revoluttest.network.connectivity.NetworkStatusLiveData
 import com.example.revoluttest.viewmodels.ConverterViewModel
 import kotlinx.android.synthetic.main.converter_fragment.*
 import kotlin.collections.ArrayList
+import kotlin.concurrent.timer
 
 /**
  * Simple fragment that uses a ViewModel to make a network call and observes the result
  * on a RecyclerView
  */
-class ConverterFragment : Fragment(), ConverterRecyclerViewAdapter.OnRateListener {
+class ConverterFragment : Fragment(),
+    ConverterRecyclerViewAdapter.OnRateListener, ConverterRecyclerViewAdapter.OnFocusChangeListener {
     private lateinit var viewModel: ConverterViewModel
     private lateinit var recyclerView : RecyclerView
     private val ratesArray = ArrayList<Currency>()
@@ -43,7 +46,7 @@ class ConverterFragment : Fragment(), ConverterRecyclerViewAdapter.OnRateListene
         viewModel = ViewModelProvider(this).get(ConverterViewModel::class.java)
 
         viewModel.initialisePositions()
-        viewModel.setupTimer(viewModel.ratesPositions[0])
+        viewModel.setupTimer(viewModel.ratesPositions[0], context!!)
 
         val ratesLiveData = viewModel.rates
         ratesLiveData.observe(viewLifecycleOwner, Observer { data ->
@@ -53,6 +56,32 @@ class ConverterFragment : Fragment(), ConverterRecyclerViewAdapter.OnRateListene
             if (converterAdapter == null) setUpRecyclerView()
             else {
                 converterAdapter!!.notifyDataSetChanged()
+            }
+        })
+
+        NetworkStatusLiveData.observe(viewLifecycleOwner, Observer { status ->
+            if(status == NetworkStatus.UNAVAILABLE)
+            {
+                Toast.makeText(context, getString(R.string.unavailable_internet), Toast.LENGTH_LONG)
+                        .show()
+            }
+            if(status == NetworkStatus.LOST)
+            {
+                Toast.makeText(context, getString(R.string.lost_internet), Toast.LENGTH_LONG)
+                    .show()
+            }
+            if(status == NetworkStatus.AVAILABLE)
+            {
+                val ratesLiveData = viewModel.rates
+                ratesLiveData.observe(viewLifecycleOwner, Observer { data ->
+                    refreshData(data.rates)
+                    viewModel.sortListByPositionsArray(ratesArray)
+
+                    if (converterAdapter == null) setUpRecyclerView()
+                    else {
+                        converterAdapter!!.notifyDataSetChanged()
+                    }
+                })
             }
         })
     }
@@ -127,13 +156,10 @@ class ConverterFragment : Fragment(), ConverterRecyclerViewAdapter.OnRateListene
             R.drawable.zar, allRates["zar"].toString().toDouble()))
     }
 
-    fun observe (){
-
-    }
-
     private fun setUpRecyclerView(){
         if (converterAdapter == null){
-            converterAdapter = ConverterRecyclerViewAdapter(ratesArray, context, this)
+            converterAdapter = ConverterRecyclerViewAdapter(ratesArray, context, this, this)
+            converterAdapter!!.setHasStableIds(true)
             conv_recycler_view.layoutManager = LinearLayoutManager(context)
             conv_recycler_view.adapter = converterAdapter
         } else {
@@ -141,7 +167,7 @@ class ConverterFragment : Fragment(), ConverterRecyclerViewAdapter.OnRateListene
         }
     }
 
-    override fun onRateClick(position: Int, currency: String) {
+    override fun onRateClick(position: Int, currency: String, currentPrice: Double) {
         // stop previous timer
         viewModel.stopCurrentTimer()
 
@@ -154,7 +180,11 @@ class ConverterFragment : Fragment(), ConverterRecyclerViewAdapter.OnRateListene
         recyclerView.scrollToPosition(0)
 
         // restart the new timerS
-        viewModel.setupTimer(currency)
+        viewModel.setupTimer(currency, context!!)
+    }
+
+    override fun onRateClick2(position: Int, currency: Currency) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun onPause() {
@@ -162,5 +192,22 @@ class ConverterFragment : Fragment(), ConverterRecyclerViewAdapter.OnRateListene
 
         // Stop calling the network
         viewModel.stopCurrentTimer()
+    }
+
+    override fun onFocusChange(position: Int, currency: Currency) {
+//        onRateClick(position, currency.currencyName, currency.value)
+        // stop previous timer
+        viewModel.stopCurrentTimer()
+
+        // place the touched rate at the top of the list and keep the elements positions
+        viewModel.moveBaseCurrencyToTopOf(ratesArray, currency.currencyName)
+        viewModel.recordPositions(ratesArray)
+
+        // move the touched element to the top of the RecyclerView
+        converterAdapter?.notifyItemMoved(position, 0)
+        recyclerView.scrollToPosition(0)
+
+        // restart the new timerS
+        viewModel.setupTimer(currency.currencyName, context!!)
     }
 }

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -11,9 +12,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.revoluttest.R
 import com.example.revoluttest.model.Currency
+import com.example.revoluttest.network.connectivity.NetworkStatus
+import com.example.revoluttest.network.connectivity.NetworkStatusLiveData
 import com.example.revoluttest.viewmodels.RatesViewModel
 import kotlinx.android.synthetic.main.rates_fragment.*
-import kotlin.collections.ArrayList
+
 
 /**
  * Simple fragment that uses a ViewModel to make a network call and observes the result
@@ -41,7 +44,7 @@ class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
         viewModel = ViewModelProvider(this).get(RatesViewModel::class.java)
 
         viewModel.initialisePositions()
-        viewModel.setupTimer(viewModel.ratesPositions[0])
+        viewModel.setupTimer(viewModel.ratesPositions[0], context!!)
 
         val ratesLiveData = viewModel.rates
         ratesLiveData.observe(viewLifecycleOwner, Observer { data ->
@@ -51,6 +54,32 @@ class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
             if (ratesAdapter == null) setUpRecyclerView()
             else {
                 ratesAdapter!!.notifyDataSetChanged()
+            }
+        })
+
+        NetworkStatusLiveData.observe(viewLifecycleOwner, Observer { status ->
+            if(status == NetworkStatus.UNAVAILABLE)
+            {
+                Toast.makeText(context, getString(R.string.unavailable_internet), Toast.LENGTH_LONG)
+                    .show()
+            }
+            if(status == NetworkStatus.LOST)
+            {
+                Toast.makeText(context, getString(R.string.lost_internet), Toast.LENGTH_LONG)
+                    .show()
+            }
+            if(status == NetworkStatus.AVAILABLE)
+            {
+                val ratesLiveData = viewModel.rates
+                ratesLiveData.observe(viewLifecycleOwner, Observer { data ->
+                    refreshData(data.rates)
+                    viewModel.sortListByPositionsArray(ratesArray)
+
+                    if (ratesAdapter == null) setUpRecyclerView()
+                    else {
+                        ratesAdapter!!.notifyDataSetChanged()
+                    }
+                })
             }
         })
     }
@@ -148,7 +177,7 @@ class RatesFragment : Fragment(), RatesRecyclerViewAdapter.OnRateListener {
         recyclerView.scrollToPosition(0)
 
         // restart the new timerS
-        viewModel.setupTimer(currency)
+        viewModel.setupTimer(currency, context!!)
     }
 
     override fun onStop() {

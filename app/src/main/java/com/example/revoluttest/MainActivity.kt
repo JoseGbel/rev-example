@@ -1,6 +1,5 @@
 package com.example.revoluttest
 
-import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.appcompat.widget.Toolbar
@@ -8,6 +7,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.viewpager.widget.ViewPager
+import com.example.revoluttest.network.connectivity.NetworkStatusLiveData
 import com.example.revoluttest.ui.main.ConverterFragment
 import com.example.revoluttest.ui.main.RatesFragment
 import com.google.android.material.tabs.TabLayout
@@ -33,6 +33,8 @@ class MainActivity : AppCompatActivity() {
 
         tabLayout = findViewById(R.id.tab_layout)
         viewPager = findViewById(R.id.view_pager)
+
+        NetworkStatusLiveData.init(application)
 
         ratesFragment = RatesFragment()
         converterFragment = ConverterFragment()

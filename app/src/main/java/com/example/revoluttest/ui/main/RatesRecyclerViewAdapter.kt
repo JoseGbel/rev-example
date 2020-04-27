@@ -34,16 +34,6 @@ class RatesRecyclerViewAdapter(val ratesList: ArrayList<Currency>,
 
         }
 
-
-        fun RecyclerView.smoothSnapToPosition(position: Int, snapMode: Int = LinearSmoothScroller.SNAP_TO_START) {
-            val smoothScroller = object : LinearSmoothScroller(this.context) {
-                override fun getVerticalSnapPreference(): Int = snapMode
-                override fun getHorizontalSnapPreference(): Int = snapMode
-            }
-            smoothScroller.targetPosition = position
-            layoutManager?.startSmoothScroll(smoothScroller)
-        }
-
         override fun onClick(v: View?) {
             onRateListener.onRateClick(adapterPosition, itemView.currency_name_rates_cv.text.toString())
         }

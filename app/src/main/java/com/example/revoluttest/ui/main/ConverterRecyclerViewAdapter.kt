@@ -20,12 +20,17 @@ import kotlinx.android.synthetic.main.converter_card_layout.view.*
  */
 class ConverterRecyclerViewAdapter(val ratesList: ArrayList<Currency>,
                                    val context: Context?,
-                                   val onRateListener: OnRateListener)
+                                   val onRateListener: OnRateListener,
+                                   val onFocusChangeListener: OnFocusChangeListener)
     : RecyclerView.Adapter<ConverterRecyclerViewAdapter.ViewHolder>() {
 
     private val doubleLiveData = MutableLiveData<Double>()
 
-    class ViewHolder(itemView: View, val onRateListener: OnRateListener, private val doubleLiveData: MutableLiveData<Double>) : RecyclerView.ViewHolder(itemView), View.OnClickListener{
+    override fun getItemId(position: Int): Long {
+        return ratesList[position].currencyName.hashCode().toLong()
+    }
+
+    class ViewHolder(itemView: View, val onRateListener: OnRateListener, private val doubleLiveData: MutableLiveData<Double>, val onFocusChangeListener: OnFocusChangeListener) : RecyclerView.ViewHolder(itemView), View.OnClickListener, View.OnFocusChangeListener{
 
         var editText: EditText
 
@@ -40,29 +45,13 @@ class ConverterRecyclerViewAdapter(val ratesList: ArrayList<Currency>,
             }
         }
 
-        fun bindHeader(currency: Currency) {
-
-            Log.d("FOCUSS", itemView.value_conv_cv.hasFocus().toString())
-            if (!editText.hasFocus()) {
-                itemView.value_conv_cv.text = SpannableStringBuilder("2.0")
-                itemView.currency_name_conv_cv.text = currency.currencyName
-                itemView.country_currency_name_conv_cv.text = currency.countryCurrencyName
-                itemView.flag_iv_conv_cv.setImageResource(currency.flag)
-                itemView.tag = currency.currencyName
-            }
-        }
-
         fun bindItem(currency : Currency){
             itemView.value_conv_cv.addTextChangedListener {
                 doubleLiveData.value = it.toString().toDouble()
             }
-
-//            if(adapterPosition != 0)
-//                itemView.value_conv_cv.text = SpannableStringBuilder(currency.value.toString())
-//            else
-//                itemView.value_conv_cv.text= SpannableStringBuilder("1.0")
-
-            itemView.value_conv_cv.text = SpannableStringBuilder(currency.value.toString())
+            if(!editText.hasFocus()){
+                itemView.value_conv_cv.text = SpannableStringBuilder(currency.value.toString())
+            }
 
             itemView.currency_name_conv_cv.text = currency.currencyName
             itemView.country_currency_name_conv_cv.text = currency.countryCurrencyName
@@ -71,7 +60,12 @@ class ConverterRecyclerViewAdapter(val ratesList: ArrayList<Currency>,
         }
 
         override fun onClick(v: View?) {
-            onRateListener.onRateClick(adapterPosition, itemView.currency_name_conv_cv.text.toString())
+            onRateListener.onRateClick(adapterPosition, itemView.currency_name_conv_cv.text.toString(), SpannableStringBuilder(itemView.value_conv_cv.text).toString().toDouble())
+        }
+
+        override fun onFocusChange(v: View?, hasFocus: Boolean) {
+            val currency = Currency(itemView.currency_name_conv_cv.text.toString(), itemView.country_currency_name_conv_cv.text.toString(), itemView.flag_iv_conv_cv.id, SpannableStringBuilder(itemView.value_conv_cv.text).toString().toDouble())
+            onFocusChangeListener.onFocusChange(adapterPosition, currency)
         }
     }
 
@@ -79,24 +73,25 @@ class ConverterRecyclerViewAdapter(val ratesList: ArrayList<Currency>,
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.converter_card_layout, parent, false)
 
-        return ViewHolder(view, onRateListener, doubleLiveData)
+        return ViewHolder(view, onRateListener, doubleLiveData, onFocusChangeListener)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        if (holder.adapterPosition == 0){
-            holder.bindHeader(ratesList[position])
-        }
-        else
             holder.bindItem(ratesList[position])
     }
-
-
 
     override fun getItemCount(): Int {
         return ratesList.size
     }
 
     interface OnRateListener {
-        fun onRateClick(position : Int, currency : String)
+        fun onRateClick(position : Int, currency : String, currentPrice: Double)
+        // todo trying to keep the old price value when going to top
+        fun onRateClick2(position : Int, currency: Currency)
+
     }
+    interface OnFocusChangeListener {
+        fun onFocusChange(position : Int, currency: Currency)
+    }
+
 }

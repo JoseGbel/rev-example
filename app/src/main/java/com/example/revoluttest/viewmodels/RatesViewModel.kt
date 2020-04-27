@@ -1,5 +1,10 @@
 package com.example.revoluttest.viewmodels
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.Build
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -11,6 +16,9 @@ import com.example.revoluttest.model.RatesResponse
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.launch
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
@@ -21,25 +29,38 @@ import kotlin.concurrent.schedule
  */
 class RatesViewModel : ViewModel() {
     private val _rates = MutableLiveData<RatesModel>()
-    val rates : LiveData<RatesModel>
+    val rates: LiveData<RatesModel>
         get() = _rates
 
     val ratesPositions = ArrayList<String>()
 
     private val timerArray = ArrayList<Timer>()
 
-    fun setupTimer(baseCurrency: String) {
-        // if array is empty add a new timer
+    fun setupTimer(baseCurrency: String, context: Context) {
+        // if there is no timer in array is empty add a new timer
         if (timerArray.size == 0) timerArray.add(Timer())
+        // otherwise re-create the timer
         else timerArray[0] = Timer()
 
-        timerArray[0].schedule(0,3000){
+        timerArray[0].schedule(0, 3000) {
             viewModelScope.launch {
-                val latestRates = getRates(baseCurrency)
+                RatesRepository().getRates(baseCurrency, object : Callback<RatesResponse> {
 
-                val transformedRates = latestRates?.let { transformDataclassToMap(it) }
+                    override fun onResponse(
+                        call: Call<RatesResponse>,
+                        response: Response<RatesResponse>
+                    ) {
+                        if (response.code() == 200) {
+                            val latestRates = response.body()!!
+                            val transformedRates = transformDataclassToMap(latestRates)
+                            _rates.postValue(transformedRates)
+                        }
+                    }
 
-                _rates.postValue(transformedRates)
+                    override fun onFailure(call: Call<RatesResponse>, t: Throwable) {
+
+                    }
+                })
             }
         }
     }
@@ -51,17 +72,17 @@ class RatesViewModel : ViewModel() {
         val tempArray = ArrayList<Currency>()
 
         // Place sorted items in a temporary
-        for (x in 0 until ratesArray.size){
+        for (x in 0 until ratesArray.size) {
 
             var found = false
-            for (y in 0 until ratesArray.size){
+            for (y in 0 until ratesArray.size) {
                 if (found) {
                     break
                 }
-                if (ratesPositions[x] == ratesArray[y].currencyName){
+                if (ratesPositions[x] == ratesArray[y].currencyName) {
                     tempArray.add(ratesArray[y])
                     found = true
-                    if(x == 31){
+                    if (x == 31) {
                         assert(true)
 
                     }
@@ -71,7 +92,7 @@ class RatesViewModel : ViewModel() {
         }
 
         // Copy the temporary list back to the ratesArray
-        for (x in 0 until tempArray.size){
+        for (x in 0 until tempArray.size) {
             ratesArray[x] = tempArray[x]
         }
     }
@@ -111,7 +132,7 @@ class RatesViewModel : ViewModel() {
         ratesPositions.add("ZAR")
     }
 
-    fun recordPositions(ratesArray: ArrayList<Currency>) : ArrayList<String> {
+    fun recordPositions(ratesArray: ArrayList<Currency>): ArrayList<String> {
         for (x in 0 until ratesArray.size) {
             ratesPositions[x] = ratesArray[x].currencyName
         }
@@ -122,13 +143,13 @@ class RatesViewModel : ViewModel() {
     /**
      * Takes the current baseCurrency and push it to the beggining of the list
      */
-    fun moveBaseCurrencyToTopOf(array: ArrayList<Currency>, baseCurrency: String){
+    fun moveBaseCurrencyToTopOf(array: ArrayList<Currency>, baseCurrency: String) {
         for (x in 0 until array.size) {
             if (array[x].currencyName == baseCurrency && x == 0) {
                 return
             } else if (array[x].currencyName == baseCurrency) {
                 val copy = array[x]
-                for (j in (x-1) downTo 0) {
+                for (j in (x - 1) downTo 0) {
                     array[j + 1] = array[j]
                 }
                 array[0] = copy
@@ -136,8 +157,6 @@ class RatesViewModel : ViewModel() {
             }
         }
     }
-
-    suspend fun getRates(baseCurrency: String) = RatesRepository().getRates(baseCurrency)
 
     /**
      * Method that prepares the data to be used in the presentation layer.
@@ -147,9 +166,9 @@ class RatesViewModel : ViewModel() {
      * @return a map with all rates including the rate of the base currency as well
      *         as the baseCurrency in a separate field
      */
-    private fun transformDataclassToMap (ratesResponse: RatesResponse) : RatesModel{
+    private fun transformDataclassToMap(ratesResponse: RatesResponse): RatesModel {
 
-        val ratesResponseAsMap = ObjectMapper().convertValue(ratesResponse.rates, object:
+        val ratesResponseAsMap = ObjectMapper().convertValue(ratesResponse.rates, object :
             TypeReference<MutableMap<String, Any>>() {})
 
         ratesResponseAsMap[ratesResponse.baseCurrency.toLowerCase(Locale.ROOT)] = 1.00
