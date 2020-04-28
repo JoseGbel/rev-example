@@ -50,6 +50,7 @@
             android:gravity="right"
             android:hint="0"
             android:focusable="true"
+            android:clickable="true"
             android:textSize="24sp"
             android:inputType="numberDecimal"/>
     </RelativeLayout>

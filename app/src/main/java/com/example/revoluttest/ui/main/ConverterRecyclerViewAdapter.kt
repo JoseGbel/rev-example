@@ -2,6 +2,7 @@ package com.example.revoluttest.ui.main
 
 import android.content.Context
 import android.text.SpannableStringBuilder
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -36,9 +37,9 @@ class ConverterRecyclerViewAdapter(
     class ViewHolder(
         itemView: View,
         val onRateListener: OnRateListener,
-        private val multiplier: MutableLiveData<Double>,
-        val onFocusChangeListener: OnFocusChangeListener
-    ) : RecyclerView.ViewHolder(itemView), View.OnClickListener, View.OnFocusChangeListener {
+        val multiplier: MutableLiveData<Double>,
+        val onFocusChangeListener: OnFocusChangeListener,
+        var watcher : TextWatcher? = null) : RecyclerView.ViewHolder(itemView), View.OnClickListener/*, View.OnFocusChangeListener*/ {
 
         var editText: EditText
 
@@ -62,13 +63,19 @@ class ConverterRecyclerViewAdapter(
             itemView.flag_iv_conv_cv.setImageResource(currency.flag)
 
             if (editText.hasFocus()) {
-                editText.addTextChangedListener {
+                watcher = editText.addTextChangedListener {
                     try {
                         multiplier.value = it.toString().toDouble()
                     } catch (e: NumberFormatException) {
                         multiplier.value = 0.0
                     }
                 }
+                if (editText.text.toString() == ""){
+
+                } else{
+                    multiplier.value = editText.text.toString().toDouble()
+                }
+
             }
 
             if(!editText.hasFocus()){
@@ -78,6 +85,12 @@ class ConverterRecyclerViewAdapter(
                 } else {
                     editText.text = SpannableStringBuilder(currency.value.round(2)
                         .toString())
+                }
+            }
+
+            editText.setOnFocusChangeListener { v, hasFocus ->
+                if (hasFocus){
+                    onClick(v)
                 }
             }
 
@@ -97,19 +110,19 @@ class ConverterRecyclerViewAdapter(
             )
         }
 
-        override fun onFocusChange(v: View?, hasFocus: Boolean) {
-            val currency = Currency(
-                itemView.currency_name_conv_cv.text.toString(),
-                itemView.country_currency_name_conv_cv.text.toString(),
-                itemView.flag_iv_conv_cv.id,
-                SpannableStringBuilder(itemView.value_conv_cv.text)
-                    .toString()
-                    .toDouble()
-                    .round(2)
-            )
-            if (hasFocus)
-                onFocusChangeListener.onFocusChange(adapterPosition, currency)
-        }
+//        override fun onFocusChange(v: View?, hasFocus: Boolean) {
+//            val currency = Currency(
+//                itemView.currency_name_conv_cv.text.toString(),
+//                itemView.country_currency_name_conv_cv.text.toString(),
+//                itemView.flag_iv_conv_cv.id,
+//                SpannableStringBuilder(itemView.value_conv_cv.text)
+//                    .toString()
+//                    .toDouble()
+//                    .round(2)
+//            )
+//            if (hasFocus)
+//                onFocusChangeListener.onFocusChange(adapterPosition, currency)
+//        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -120,16 +133,6 @@ class ConverterRecyclerViewAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        if (holder.layoutPosition == 0){
-            holder.editText.isFocusable = true
-            holder.editText.isClickable = false
-        }
-
-        if (holder.layoutPosition != 0){
-            holder.editText.isFocusable = false
-            holder.editText.isClickable = true
-        }
-
         holder.bindItem(ratesList[position])
     }
 
@@ -139,9 +142,6 @@ class ConverterRecyclerViewAdapter(
 
     interface OnRateListener {
         fun onRateClick(position: Int, currency: String, currentPrice: Double)
-        // todo trying to keep the old price value when going to top
-        fun onRateClick2(position: Int, currency: Currency)
-
     }
 
     interface OnFocusChangeListener {

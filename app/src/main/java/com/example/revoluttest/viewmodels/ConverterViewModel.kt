@@ -156,21 +156,6 @@ class ConverterViewModel : ViewModel() {
         }
     }
 
-    fun moveBaseCurrencyToTopOf2(array: ArrayList<Currency>, baseCurrency: Currency) {
-        for (x in 0 until array.size) {
-            if (array[x].currencyName == baseCurrency.currencyName && x == 0) {
-                return
-            } else if (array[x].currencyName == baseCurrency.currencyName) {
-                val copy = array[x]
-                for (j in (x - 1) downTo 0) {
-                    array[j + 1] = array[j]
-                }
-                array[0] = copy
-                return
-            }
-        }
-    }
-
     /**
      * Method that prepares the data to be used in the presentation layer.
      *

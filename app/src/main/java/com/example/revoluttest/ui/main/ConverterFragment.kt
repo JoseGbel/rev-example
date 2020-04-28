@@ -1,6 +1,7 @@
 package com.example.revoluttest.ui.main
 
 import android.os.Bundle
+import android.text.SpannableStringBuilder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +18,9 @@ import com.example.revoluttest.network.connectivity.NetworkStatusLiveData
 import com.example.revoluttest.viewmodels.ConverterViewModel
 import kotlinx.android.synthetic.main.converter_card_layout.view.*
 import kotlinx.android.synthetic.main.converter_fragment.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlin.collections.ArrayList
 
 /**
@@ -171,25 +175,26 @@ class ConverterFragment : Fragment(),
         // stop previous timer
         viewModel.stopCurrentTimer()
 
-        // place the touched rate at the top of the list and keep the elements positions
-        viewModel.moveBaseCurrencyToTopOf(ratesArray, currency)
-        viewModel.recordPositions(ratesArray)
+//         remove the textChangedListener from the top one
+        val topViewHolder = recyclerView.findViewHolderForAdapterPosition(0)
+        topViewHolder?.itemView?.value_conv_cv?.clearFocus()
+
+        val clickedViewHolder = recyclerView.findViewHolderForAdapterPosition(position)
+        clickedViewHolder?.itemView?.value_conv_cv?.requestFocus()
+
+        GlobalScope.launch (Dispatchers.Default){
+            // place the touched rate at the top of the list and keep the elements positions
+            viewModel.moveBaseCurrencyToTopOf(ratesArray, currency)
+            viewModel.recordPositions(ratesArray)
+
+        }
 
         // move the touched element to the top of the RecyclerView
         converterAdapter?.notifyItemMoved(position, 0)
         recyclerView.scrollToPosition(0)
 
-        // allow the view to be focusable
-        val holder = recyclerView.findViewHolderForLayoutPosition(0)
-        holder!!.itemView.value_conv_cv.isFocusable = true
-        holder.itemView.value_conv_cv.isClickable = false
-
         // restart the new timerS
         viewModel.setupTimer(currency, context!!)
-    }
-
-    override fun onRateClick2(position: Int, currency: Currency) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun onPause() {
