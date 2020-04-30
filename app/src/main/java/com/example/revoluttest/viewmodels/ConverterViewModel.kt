@@ -5,20 +5,23 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.example.revoluttest.model.Currency
 import com.example.revoluttest.model.RatesModel
 import com.example.revoluttest.model.RatesRepository
 import com.example.revoluttest.model.RatesResponse
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.util.*
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
+
 
 /**
  * This ViewModel holds a reference to LiveData which is returned  from the repository
@@ -31,15 +34,21 @@ class ConverterViewModel : ViewModel() {
 
     val ratesPositions = ArrayList<String>()
 
-    private val timerArray = ArrayList<Timer>()
+    private lateinit var timer: Timer
 
-    fun setupTimer(baseCurrency: String, context: Context) {
-        // if array is empty add a new timer
-        if (timerArray.size == 0) timerArray.add(Timer())
-        else timerArray[0] = Timer()
+    private lateinit var periodicFuture: ScheduledFuture<*>
 
-        timerArray[0].schedule(0, 3000) {
-            viewModelScope.launch {
+    private val timerArray = ArrayList<Timer?>()
+
+    fun setupScheduller(baseCurrency: String) {
+        val sch: ScheduledThreadPoolExecutor =
+            Executors.newScheduledThreadPool(1) as ScheduledThreadPoolExecutor
+
+
+        Log.d("MYTASKS", "NON PERIODIC THREAD: " + Thread.currentThread().id)
+        val periodicTask = Runnable {
+            try {
+                Log.d("MYTASKS", "PERIODIC THREAD: " + Thread.currentThread().id)
                 RatesRepository().getRates(baseCurrency, object : Callback<RatesResponse> {
 
                     override fun onResponse(
@@ -60,7 +69,43 @@ class ConverterViewModel : ViewModel() {
 
                     }
                 })
+            } catch (e: Exception) {
             }
+        }
+         periodicFuture =
+            sch.scheduleAtFixedRate(periodicTask, 0, 1, TimeUnit.SECONDS)
+        Log.d("MYTASKS",periodicFuture.toString() + "Started")
+    }
+
+    fun setupTimer(baseCurrency: String, context: Context) {
+        // if array is empty add a new timer
+//        if (timerArray.size == 0) timerArray.add(Timer())
+//        else timerArray[0] = Timer()
+
+        timer = Timer()
+        timer.schedule(0, 3000) {
+            //            viewModelScope.launch {
+            RatesRepository().getRates(baseCurrency, object : Callback<RatesResponse> {
+
+                override fun onResponse(
+                    call: Call<RatesResponse>,
+                    response: Response<RatesResponse>
+                ) {
+                    if (response.code() == 200) {
+                        val latestRates = response.body()!!
+                        val transformedRates = transformDataclassToMap(latestRates)
+                        _rates.postValue(transformedRates)
+                    }
+                    if (!response.isSuccessful) {
+                        connectionStatus.value = false
+                    }
+                }
+
+                override fun onFailure(call: Call<RatesResponse>, t: Throwable) {
+
+                }
+            })
+//            }
         }
     }
 
@@ -175,6 +220,19 @@ class ConverterViewModel : ViewModel() {
     }
 
     fun stopCurrentTimer() {
-        timerArray[0].cancel()
+        timer.cancel()
+        timer.purge()
+//        timerArray[0] = null
     }
+
+    fun stopCurrentExecutor(){
+        periodicFuture.cancel(true)
+        Log.d("MYTASKS", periodicFuture.toString() + "Cancelled? " + periodicFuture.isCancelled)
+        Log.d("MYTASKS", "Cancelling task in thread: " + Thread.currentThread().id)
+        Log.d("MYTASKS", periodicFuture.toString() + "Done? " + periodicFuture.isDone)
+    }
+}
+
+interface Cancelable {
+    fun cancelTimer(timer: Timer)
 }

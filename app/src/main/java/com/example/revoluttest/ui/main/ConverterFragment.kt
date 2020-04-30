@@ -28,7 +28,7 @@ import kotlin.collections.ArrayList
  * on a RecyclerView
  */
 class ConverterFragment : Fragment(),
-    ConverterRecyclerViewAdapter.OnRateListener, ConverterRecyclerViewAdapter.OnFocusChangeListener {
+    ConverterRecyclerViewAdapter.OnRateListener/*, ConverterRecyclerViewAdapter.OnFocusChangeListener*/ {
     private lateinit var viewModel: ConverterViewModel
     private lateinit var recyclerView : RecyclerView
     private val ratesArray = ArrayList<Currency>()
@@ -50,7 +50,8 @@ class ConverterFragment : Fragment(),
         viewModel = ViewModelProvider(this).get(ConverterViewModel::class.java)
 
         viewModel.initialisePositions()
-        viewModel.setupTimer(viewModel.ratesPositions[0], context!!)
+//        viewModel.setupTimer(viewModel.ratesPositions[0], context!!)
+        viewModel.setupScheduller(viewModel.ratesPositions[0])
 
         val ratesLiveData = viewModel.rates
         ratesLiveData.observe(viewLifecycleOwner, Observer { data ->
@@ -162,7 +163,7 @@ class ConverterFragment : Fragment(),
 
     private fun setUpRecyclerView(){
         if (converterAdapter == null){
-            converterAdapter = ConverterRecyclerViewAdapter(ratesArray, context, this, this)
+            converterAdapter = ConverterRecyclerViewAdapter(ratesArray, context, this /*,this*/)
             converterAdapter!!.setHasStableIds(true)
             conv_recycler_view.layoutManager = LinearLayoutManager(context)
             conv_recycler_view.adapter = converterAdapter
@@ -173,14 +174,16 @@ class ConverterFragment : Fragment(),
 
     override fun onRateClick(position: Int, currency: String, currentPrice: Double) {
         // stop previous timer
-        viewModel.stopCurrentTimer()
-
+//        viewModel.stopCurrentTimer()
+        viewModel.stopCurrentExecutor()
 //         remove the textChangedListener from the top one
         val topViewHolder = recyclerView.findViewHolderForAdapterPosition(0)
         topViewHolder?.itemView?.value_conv_cv?.clearFocus()
 
         val clickedViewHolder = recyclerView.findViewHolderForAdapterPosition(position)
         clickedViewHolder?.itemView?.value_conv_cv?.requestFocus()
+
+//        viewModel.stopCurrentTimer()
 
         GlobalScope.launch (Dispatchers.Default){
             // place the touched rate at the top of the list and keep the elements positions
@@ -194,30 +197,41 @@ class ConverterFragment : Fragment(),
         recyclerView.scrollToPosition(0)
 
         // restart the new timerS
-        viewModel.setupTimer(currency, context!!)
+//        viewModel.setupTimer(currency, context!!)
+        viewModel.setupScheduller(currency)
     }
 
     override fun onPause() {
         super.onPause()
 
         // Stop calling the network
-        viewModel.stopCurrentTimer()
+//        viewModel.stopCurrentTimer()
+        viewModel.stopCurrentExecutor()
     }
 
-    override fun onFocusChange(position: Int, currency: Currency) {
-//        onRateClick(position, currency.currencyName, currency.value)
-        // stop previous timer
-        viewModel.stopCurrentTimer()
-
-        // place the touched rate at the top of the list and keep the elements positions
-        viewModel.moveBaseCurrencyToTopOf(ratesArray, currency.currencyName)
-        viewModel.recordPositions(ratesArray)
-
-        // move the touched element to the top of the RecyclerView
-        converterAdapter?.notifyItemMoved(position, 0)
-        recyclerView.scrollToPosition(0)
-
-        // restart the new timerS
-        viewModel.setupTimer(currency.currencyName, context!!)
-    }
+//    override fun onFocusChange(position: Int, currency: Currency) {
+////        onRateClick(position, currency.currencyName, currency.value)
+//        // stop previous timer
+////        viewModel.stopCurrentTimer()
+//        viewModel.stopCurrentExecutor()
+//
+//        val topViewHolder = recyclerView.findViewHolderForAdapterPosition(0)
+//        topViewHolder?.itemView?.value_conv_cv?.clearFocus()
+//
+//        val clickedViewHolder = recyclerView.findViewHolderForAdapterPosition(position)
+//        clickedViewHolder?.itemView?.value_conv_cv?.requestFocus()
+//
+//        GlobalScope.launch (Dispatchers.Default) {
+//            // place the touched rate at the top of the list and keep the elements positions
+//            viewModel.moveBaseCurrencyToTopOf(ratesArray, currency.currencyName)
+//            viewModel.recordPositions(ratesArray)
+//        }
+//        // move the touched element to the top of the RecyclerView
+//        converterAdapter?.notifyItemMoved(position, 0)
+//        recyclerView.scrollToPosition(0)
+//
+//        // restart the new timerS
+////        viewModel.setupTimer(currency.currencyName, context!!)
+//        viewModel.setupScheduller(currency.currencyName)
+//    }
 }

@@ -8,7 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import androidx.core.widget.addTextChangedListener
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
 import com.example.revoluttest.R
 import com.example.revoluttest.model.Currency
@@ -24,8 +26,8 @@ import kotlin.properties.Delegates
 class ConverterRecyclerViewAdapter(
     val ratesList: ArrayList<Currency>,
     val context: Context?,
-    val onRateListener: OnRateListener,
-    val onFocusChangeListener: OnFocusChangeListener
+    val onRateListener: OnRateListener/*,
+    val onFocusChangeListener: OnFocusChangeListener*/
 ) : RecyclerView.Adapter<ConverterRecyclerViewAdapter.ViewHolder>() {
 
     private val doubleLiveData = MutableLiveData<Double>()
@@ -34,13 +36,19 @@ class ConverterRecyclerViewAdapter(
         return ratesList[position].currencyName.hashCode().toLong()
     }
 
+    override fun onViewDetachedFromWindow(holder: ViewHolder) {
+        super.onViewDetachedFromWindow(holder)
+
+        holder.itemView.setOnClickListener(null)
+        holder.editText.onFocusChangeListener = null
+    }
+
     class ViewHolder(
         itemView: View,
         val onRateListener: OnRateListener,
         val multiplier: MutableLiveData<Double>,
-        val onFocusChangeListener: OnFocusChangeListener,
-        var watcher : TextWatcher? = null) : RecyclerView.ViewHolder(itemView), View.OnClickListener/*, View.OnFocusChangeListener*/ {
-
+        /*val onFocusChangeListener: OnFocusChangeListener,*/
+        var watcher : TextWatcher? = null) : RecyclerView.ViewHolder(itemView), View.OnClickListener/*, View.OnFocusChangeListener */{
         var editText: EditText
 
         private var currentValue: Double by Delegates.notNull()
@@ -48,6 +56,7 @@ class ConverterRecyclerViewAdapter(
         init {
             itemView.setOnClickListener(this)
             editText = itemView.findViewById(R.id.value_conv_cv)
+//            editText.onFocusChangeListener = this
 
             multiplier.observeForever {
                 if (!editText.hasFocus()){
@@ -62,6 +71,10 @@ class ConverterRecyclerViewAdapter(
             itemView.country_currency_name_conv_cv.text = currency.countryCurrencyName
             itemView.flag_iv_conv_cv.setImageResource(currency.flag)
 
+            // keep the value of the currency to multiply it by the multiplier
+            // when the multiplier emits changes
+            currentValue = currency.value
+
             if (editText.hasFocus()) {
                 watcher = editText.addTextChangedListener {
                     try {
@@ -70,12 +83,11 @@ class ConverterRecyclerViewAdapter(
                         multiplier.value = 0.0
                     }
                 }
-                if (editText.text.toString() == ""){
-
-                } else{
+                if (editText.text.toString() != "") {
                     multiplier.value = editText.text.toString().toDouble()
+                } else {
+                    multiplier.value = 0.0
                 }
-
             }
 
             if(!editText.hasFocus()){
@@ -88,15 +100,11 @@ class ConverterRecyclerViewAdapter(
                 }
             }
 
-            editText.setOnFocusChangeListener { v, hasFocus ->
-                if (hasFocus){
-                    onClick(v)
-                }
-            }
-
-            // keep the value of the currency to multiply it by the multiplier
-            // when the multiplier emits changes
-            currentValue = currency.value
+//            editText.setOnFocusChangeListener { v, hasFocus ->
+//                if (hasFocus && layoutPosition != 0){
+//                    onFocusChange(v, hasFocus)
+//                }
+//            }
         }
 
         override fun onClick(v: View?) {
@@ -129,7 +137,7 @@ class ConverterRecyclerViewAdapter(
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.converter_card_layout, parent, false)
 
-        return ViewHolder(view, onRateListener, doubleLiveData, onFocusChangeListener)
+        return ViewHolder(view, onRateListener, doubleLiveData/*, onFocusChangeListener*/)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
